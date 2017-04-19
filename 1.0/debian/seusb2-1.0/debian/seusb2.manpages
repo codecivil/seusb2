@@ -1,0 +1,4 @@
+debian/seusb2d.8
+debian/seusb2_userd.8
+debian/seusb2-confirm.8
+debian/gen_passwd.1

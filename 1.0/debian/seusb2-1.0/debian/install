@@ -1,0 +1,9 @@
+seusb2.conf /etc/seusb2
+seusb2-*.rules /etc/seusb2/templates
+seusb2-alert.desktop /etc/seusb2/templates
+seusb2d /usr/bin
+seusb2-confirm /usr/bin
+seusb2_userd /usr/bin
+gen_passwd /usr/bin
+acpi-powerbtn-seusb2.sh /etc/acpi
+powerbtn-seusb2 /etc/acpi/events

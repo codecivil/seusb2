@@ -1,0 +1,25 @@
+#!/bin/bash
+# seusb2-confirm
+# creates $MSGDIR/<message>
+. /etc/seusb2/seusb2.conf
+FILENAME="$(/usr/bin/gen_passwd 8 A-Z a-z 0-9)"
+DEVICE="$1"  ## given as %E{DEVPATH}
+LOG="/var/log/seusb2.log"
+echo "$(date) Confirmation for usb input device $DEVICE requested"> $LOG
+
+function get_info() {
+#	t="${DEVICE##*-}" #that's for the /dev/input/by-id filepath
+#	proper_path="$(find /sys$DEVICE -wholename input/input | head -n1 | sed 's/\/sys//' )" # find the path of the input device
+	proper_path="$DEVICE"
+	eval $(udevadm info -q property -p "$proper_path" --export )
+	seusb2_typ="unbestimmtes Eingabegerät"
+	if [[ "$ID_INPUT_KEYBOARD" == "1" ]]; then seusb2_typ="${MSG['KEYBOARD',$MSGLANG]}"; fi
+	if [[ "$ID_INPUT_MOUSE" == "1" ]]; then seusb2_typ="${MSG['MOUSE',$MSGLANG]}"; fi
+	seusb2_model="$(echo "$ID_MODEL" | sed 's/_/ /')"
+	seusb2_vendor="$ID_VENDOR_ID"
+	seusb2_product="$ID_MODEL_ID"
+	echo -e "seusb2_typ='$seusb2_typ'\nseusb2_model='$seusb2_model'\nseusb2_vendor=$seusb2_vendor\nseusb2_product=$seusb2_product" > $MSGDIR/$FILENAME
+	chmod 660 $MSGDIR/$FILENAME
+}
+
+get_info

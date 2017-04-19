@@ -1,0 +1,3 @@
+ACTION=="add|change", SUBSYSTEM=="input", SUBSYSTEMS=="usb", KERNEL=="event*", ENV{PARID}="$id", RUN+="/bin/sh -c 'echo 0 >/sys/bus/usb/devices/%E{PARID}/authorized; /usr/bin/seusb2-confirm %E{DEVPATH}'"
+
+LABEL="seusb2_end"

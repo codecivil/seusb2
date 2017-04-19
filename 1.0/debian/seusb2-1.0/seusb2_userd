@@ -1,0 +1,32 @@
+#!/bin/bash
+. /etc/seusb2/seusb2.conf
+
+function _confirm() {
+	FILENAME="$1"
+	. $MSGDIR/$FILENAME
+	DECISION="$(zenity --width=500 --height=300 --timeout=120 --title="${MSG['TITLE',$MSGLANG]}" --list --radiolist --text="<b>${MSG['POWERBTN',$MSGLANG]}</b>\n${MSG['DESCRIPTION',$MSGLANG]}\n${MSG['TYPE',$MSGLANG]}: <b>$seusb2_typ</b>\n${MSG['MODEL',$MSGLANG]}: <b>$seusb2_model</b>\n<b>${MSG['CHECK',$MSGLANG]}</b>" --column="" --column="" "" "${MSG['OKLABEL',$MSGLANG]}" "" "${MSG['CANCELLABEL',$MSGLANG]}" "" "${MSG['TMPCANCELLABEL',$MSGLANG]}")"; 
+	case "$DECISION" in
+	"${MSG['OKLABEL',$MSGLANG]}")
+		###add allow udev rule
+		echo "seusb2_allow=true" >> $MSGDIR/$FILENAME
+		zenity --notification --title="${MSG['TITLE',$MSGLANG]}" --text="${MSG['REATTACH',$MSGLANG]}"
+		;;
+	"${MSG['CANCELLABEL',$MSGLANG]}")
+		###add ban udev rule
+		echo "seusb2_allow=false" >> $MSGDIR/$FILENAME
+		;;
+	"${MSG['TMPCANCELLABEL',$MSGLANG]}"|"")
+		###just remove task
+		echo "seusb2_tmpallow=false" >> $MSGDIR/$FILENAME
+		;;
+	esac
+}
+
+#process the queue
+for _FILE in $(ls $MSGDIR); do _confirm $_FILE; done
+#wait for live events
+inotifywait -mqre create --format %f $MSGDIR/ |
+while true; do
+	read FILENAME; if [[ "$FILENAME" == "" || ! -f $MSGDIR/$FILENAME ]]; then continue; fi
+	_confirm $FILENAME
+done

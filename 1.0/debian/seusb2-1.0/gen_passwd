@@ -1,0 +1,52 @@
+#!/bin/bash
+#gen_passwd LENGTH [-i CHARRANGES -e CHARRANGES]
+#i 	include CHARRANGES; default: all
+#e 	exclude CHARRANGES; default: nothing
+#parse options
+parse_options() { length="$1"
+k=2; rm include exclude 2>/dev/null
+action="include"
+while [[ "${!k}" != "" ]]
+	do
+		case "${!k}" in
+			"-i")	action="include";;
+			"-e")	action="exclude";;
+			*"-"*)	firstchar="${!k%%-*}"; lastchar="${!k##*-}"
+					firsthex="$(echo -n $firstchar | xxd -p )"; lasthex="$(echo -n $lastchar | xxd -p )"
+					firstdec="$(printf "%d" 0x$firsthex )"; lastdec="$(printf "%d" 0x$lasthex )"
+					item=$firstdec
+					while [[ "$lastdec" -ge "$item" ]]
+						do
+							echo $item >> $action
+							let item+=1
+						done
+					;;
+			*)		char="${!k}"; if [[ "${#char}" == "1" ]]; then
+									hex="$(echo -n $char | xxd -p )"
+									dec="$(printf "%d" 0x$hex )"
+									echo $dec >> $action
+								else
+									echo "gen_passwd: option "${!k}" not parsable, hence ignored"
+								fi
+					;;
+		esac
+		let k+=1
+	done
+}
+
+generate() { pos=1
+while [[ "$length" -ge "$pos" ]]
+	do
+	randec=$((RANDOM*90/32768+33))
+	valid=true
+	[[ -f include ]] && { [[ $(grep -x $randec include) = "" ]] && valid=false; }
+	[[ -f exclude ]] && { [[ $(grep -x $randec exclude) != "" ]] && valid=false; }
+	if $valid; then ranhex=$(printf "%X" $randec); echo -ne "\x$ranhex"; let pos+=1; fi
+	done
+	echo
+}
+
+parse_options $@
+generate
+rm include exclude 2>/dev/null
+exit 0

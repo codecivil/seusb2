@@ -1,0 +1,24 @@
+#!/bin/bash
+. /etc/seusb2/seusb2.conf
+TMPFILE="$(gen_passwd 8 A-Z a-z 0-9)"
+#inotifywait -mqre create,modify --format %f /dev/input/by-id/ /usr/share/seusb2/ | 
+inotifywait -mqre modify --format %f $MSGDIR | 
+while true; do
+	read FILENAME;
+	. $MSGDIR/$FILENAME
+	if [[ $(grep "seusb2_allow" $MSGDIR/$FILENAME) != "" ]] && $seusb2_allow; then
+		cat /etc/seusb2/templates/seusb2-allow.template.rules | sed "s/wwww/$seusb2_typ/; s/zzzz/$seusb2_model/; s/xxxx/$seusb2_vendor/; s/yyyy/$seusb2_product/" > /tmp/$TMPFILE
+		rm $MSGDIR/$FILENAME
+	fi
+	if [[ $(grep "seusb2_allow" $MSGDIR/$FILENAME) != "" ]] && ! $seusb2_allow; then				
+		cat /etc/seusb2/templates/seusb2-deny.template.rules | sed "s/xxxx/$seusb2_vendor/; s/yyyy/$seusb2_product/" > /tmp/$TMPFILE
+		rm $MSGDIR/$FILENAME
+	fi
+	if [[ $(grep "seusb2_tmpallow" $MSGDIR/$FILENAME) != "" ]] && ! $seusb2_tmpallow; then				
+		rm $MSGDIR/$FILENAME
+	fi
+	cat /etc/udev/rules.d/$UDEVPRI-seusb2.rules >> /tmp/$TMPFILE
+	mv /tmp/$TMPFILE /etc/udev/rules.d/$UDEVPRI-seusb2.rules
+	udevadm control --reload
+done
+

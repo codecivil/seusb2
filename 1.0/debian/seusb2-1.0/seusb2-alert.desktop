@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=SEUSB2-Alert
+GenericName=Security Enhanced USB Alerter 2
+Exec=/usr/bin/seusb2_userd
+Terminal=false
+Icon=
+Categories=
+Type=Application
+StartupNotify=false
+X-GNOME-Autostart-enabled=true

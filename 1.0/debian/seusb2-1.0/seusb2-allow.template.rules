@@ -1,0 +1,3 @@
+# Allow wwww zzzz
+ACTION=="add", SUBSYSTEM=="input", SUBSYSTEMS=="usb", ATTRS{idVendor}=="xxxx", ATTRS{idProduct}=="yyyy", ENV{PARID}="$id", RUN+="/bin/sh -c 'echo 1 >/sys/bus/usb/devices/%E{PARID}/authorized'", GROUP="plugdev", GOTO="seusb2_end"
+

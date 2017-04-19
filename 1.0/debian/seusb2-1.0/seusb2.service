@@ -1,0 +1,9 @@
+[Unit]
+Description=Security Enhanced USB 2 service 
+
+[Service]
+ExecStart=/usr/bin/seusb2d
+StandardOutput=syslog
+
+[Install]
+WantedBy=multi-user.target

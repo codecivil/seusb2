@@ -1,0 +1,75 @@
+#!/bin/bash
+# seusb2-install
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+### test for root privileges
+if [[ "$(whoami)" != "root" ]]; then echo "Please run the installer with root privileges."; exit 1; fi
+
+### test for udev
+udevadm --version >/dev/null || { echo "seusb2 depends on udev, but udev ist not available (fatal)."; exit 1; }
+
+### install dependencies
+echo "Installing dependencies."
+apt-get install inotify-tools zenity | { xargs echo -e "$GREEN\n"; echo -e $NC; }|| { echo -e "Installation of dependencies failed (fatal). Please try to install\n inotify-tools zenity\n or the corresponding packages for your distribution manually and run the installer again."; exit 1; }
+#gen_passwd is installed at move files
+
+### generate group
+echo "Adding group seusb2."
+addgroup seusb2 | { xargs echo -e "$GREEN\n"; echo -e $NC; }
+read -p "Please write down the users allowed to use seusb2, separated by blanks (ENTER for none; you can skip this here and add the users later manually to the group seusb2): " _users
+for _user in $_users; do usermod -aG seusb2 $_user; done
+if [[ "$_users" != "" ]]; then echo "Currently logged in seusb2 users have to re-login to activate seusb2."; fi
+
+### read config
+. seusb2.conf
+
+### make dirs
+echo "Create directories and set ownerships/permissions."
+mkdir -p /etc/seusb2/templates
+mkdir -p $MSGDIR
+chown root:seusb2 $MSGDIR
+chmod 770 $MSGDIR
+chmod g+s $MSGDIR
+
+### set ownerships and permissions
+chown root:root seusb2.conf seusb2-confirm seusb2-confirm.rules seusb2d seusb2-allow.template.rules seusb2-deny.template.rules seusb2.service gen_passwd
+chown root:seusb2 seusb2_userd seusb2-alert.desktop
+chmod 750 seusb2-confirm seusb2d seusb2_userd 
+chmod 755 gen_passwd
+
+### move files
+echo "Moving files."
+cp seusb2.service /lib/systemd/system/
+cp seusb2.conf /etc/seusb2/
+cp seusb2-confirm-install.rules /etc/udev/rules.d/$UDEVPRI-seusb2.rules #only for install; proper version is copied later
+cp seusb2-*.template.rules /etc/seusb2/templates/
+cp seusb2d seusb2-confirm seusb2_userd gen_passwd /usr/bin/
+chown root:seusb2 /usr/bin/seusb2_userd # usually, there is a facl fixing the ownership of newly created files we have to override
+for _USER in $(ls /home); do
+    _HOME="$(eval echo ~$_USER)"
+	mkdir -p $_HOME/.config/autostart
+	cp -a seusb2-alert.desktop $_HOME/.config/autostart/
+done
+
+### intall service
+echo "Installing seusb2 service."
+udevadm control --reload
+systemctl enable seusb2.service
+systemctl start seusb2.service
+
+### first run
+### trigger the dialogues for plugged in usb input devices without disabling them!
+echo -e "First run. Please note:$RED\nINPUT USB DEVICES YOU BLOCK NOW WILL NOT BE AVAILABLE ANY MORE AFTER NEXT BOOT.\nFor example, if you currently use an USB keyboard, make sure to allow the device in the dialogue."
+echo -e "Please make sure to login as a seusb2 user before rebooting the machine. Otherwise you might loose access to built-in usb devices.$NC"
+udevadm trigger --subsystem-match='input' --subsystem-match='usb'
+
+
+### finish and cleanup
+echo "Cleaning up."
+cp seusb2-confirm.rules /etc/udev/rules.d/$UDEVPRI-seusb2.rules
+udevadm control --reload
+
+echo "Installation finished. If you are a seusb2 user you can activate by executing '/usr/bin/seusb2_userd &'."

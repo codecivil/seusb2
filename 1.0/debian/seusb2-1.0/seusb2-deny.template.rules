@@ -1,0 +1,3 @@
+# Deny wwww zzzz
+ACTION=="add|change", SUBSYSTEM=="input", SUBSYSTEMS=="usb", ATTRS{idVendor}=="xxxx", ATTRS{idProduct}=="yyyy", ENV{PARID}="$id", RUN+="/bin/sh -c 'echo 0 >/sys/bus/usb/devices/%E{PARID}/authorized'", GOTO="seusb2_end"
+

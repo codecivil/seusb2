@@ -1,2 +1,2 @@
 event=button[ /]power
-action=/etc/acpi/powerbtn-seusb2.sh
+action=/etc/acpi/acpi-powerbtn-seusb2.sh

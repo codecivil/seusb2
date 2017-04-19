@@ -8,16 +8,22 @@ function _confirm() {
 	case "$DECISION" in
 	"${MSG['OKLABEL',$MSGLANG]}")
 		###add allow udev rule
-		echo "seusb2_allow=true" >> $MSGDIR/$FILENAME
-		zenity --notification --title="${MSG['TITLE',$MSGLANG]}" --text="${MSG['REATTACH',$MSGLANG]}"
+		if [[ -f $MSGDIR/$FILENAME ]]; then 
+			echo "seusb2_allow=true" >> $MSGDIR/$FILENAME
+			zenity --notification --title="${MSG['TITLE',$MSGLANG]}" --text="${MSG['REATTACH',$MSGLANG]}"
+		fi
 		;;
 	"${MSG['CANCELLABEL',$MSGLANG]}")
 		###add ban udev rule
-		echo "seusb2_allow=false" >> $MSGDIR/$FILENAME
+		if [[ -f $MSGDIR/$FILENAME ]]; then 
+			echo "seusb2_allow=false" >> $MSGDIR/$FILENAME
+		fi
 		;;
 	"${MSG['TMPCANCELLABEL',$MSGLANG]}"|"")
 		###just remove task
-		echo "seusb2_tmpallow=false" >> $MSGDIR/$FILENAME
+		if [[ -f $MSGDIR/$FILENAME ]]; then 
+			echo "seusb2_tmpallow=false" >> $MSGDIR/$FILENAME
+		fi
 		;;
 	esac
 }

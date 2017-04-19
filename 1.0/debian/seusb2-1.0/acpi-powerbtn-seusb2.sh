@@ -2,9 +2,6 @@
 # acpi-powerbtn-seusb2.sh
 #
 
-# close the dialogues
-pkill zenity
-
 # read config
 . /etc/seusb2/seusb2.conf
 
@@ -17,3 +14,6 @@ function _confirm() {
 
 #process the queue
 for _FILE in $(ls $MSGDIR); do _confirm $_FILE; done
+
+# close the dialogues
+pkill zenity

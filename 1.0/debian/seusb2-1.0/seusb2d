@@ -11,7 +11,7 @@ while true; do
 		rm $MSGDIR/$FILENAME
 	fi
 	if [[ $(grep "seusb2_allow" $MSGDIR/$FILENAME) != "" ]] && ! $seusb2_allow; then				
-		cat /etc/seusb2/templates/seusb2-deny.template.rules | sed "s/xxxx/$seusb2_vendor/; s/yyyy/$seusb2_product/" > /tmp/$TMPFILE
+		cat /etc/seusb2/templates/seusb2-deny.template.rules | sed "s/wwww/$seusb2_typ/; s/zzzz/$seusb2_model/; s/xxxx/$seusb2_vendor/; s/yyyy/$seusb2_product/" > /tmp/$TMPFILE
 		rm $MSGDIR/$FILENAME
 	fi
 	if [[ $(grep "seusb2_tmpallow" $MSGDIR/$FILENAME) != "" ]] && ! $seusb2_tmpallow; then				
